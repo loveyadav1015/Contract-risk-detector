@@ -1,3 +1,12 @@
+---
+title: Contract Risk Detector
+emoji: ⚖️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
 # Contract Risk Detector 
 
 ## Mini-Transformer (From-Scratch) — Ablation Study

@@ -19,8 +19,11 @@ COPY configs/ configs/
 COPY models/ models/
 COPY mini_transformer/ mini_transformer/
 
-# Expose the API port
-EXPOSE 8000
+# Explicitly set HF_HOME to a writable directory for HF Spaces (non-root container)
+ENV HF_HOME=/tmp/hf_cache
 
-# Run the FastAPI server
-CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Expose the HF Spaces required port (7860 instead of Render's dynamic 8000)
+EXPOSE 7860
+
+# Run the FastAPI server on port 7860 (HF Spaces specific)
+CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port 7860"]

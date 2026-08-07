@@ -1,0 +1,33 @@
+# Core ML
+torch>=2.0.0
+transformers>=4.35.0
+# Pinned: v4+/v5+ dropped script-based dataset loading which CUAD requires
+datasets==2.19.0
+accelerate>=0.24.0
+
+# Evaluation
+scikit-learn>=1.3.0
+
+# API
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+pydantic>=2.5.0
+
+# PDF extraction
+pdfplumber>=0.10.0
+
+# RAG (optional)
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+
+# Config and utilities
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+httpx>=0.25.0
+
+# Notebook
+jupyterlab>=4.0.0

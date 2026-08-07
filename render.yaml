@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: contract-risk-detector
+    env: docker
+    plan: free
+    healthCheckPath: /health

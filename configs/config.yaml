@@ -1,0 +1,43 @@
+# Contract Risk Detector — Configuration
+
+model:
+  name: "nlpaueb/legal-bert-base-uncased"  # Alternative: "microsoft/deberta-v3-base"
+  num_labels: 3          # Low, Medium, High
+  max_length: 512
+  dropout: 0.1
+
+training:
+  batch_size: 8          # RTX 4050 6GB safe with fp16
+  num_epochs: 5
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  fp16: true
+  gradient_accumulation_steps: 2
+  seed: 42
+  num_workers: 2
+  save_best_metric: "f1_macro"
+
+data:
+  val_size: 0.1
+  test_size: 0.1
+  stride: 128
+
+paths:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  model_output_dir: "models"
+  best_model_path: "models/best_model"
+  logs_dir: "logs"
+
+labels:
+  id2label: {0: "low", 1: "medium", 2: "high"}
+  label2id: {"low": 0, "medium": 1, "high": 2}
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  model_path: "models/best_model"
+
+rag:
+  enabled: false

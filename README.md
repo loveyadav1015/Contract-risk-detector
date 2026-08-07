@@ -81,7 +81,6 @@ This regularization run improved overall test metrics, with accuracy increasing 
 |---|---|---|
 | Parameters | ~110,000,000 | 4,586,752 (~24x smaller) |
 | Pretrained | Yes (legal-domain corpus) | No (random init) |
-| Training time | ~12-15 min (5 epochs, best at epoch 2) | 1.58 min (10 epochs, best at epoch 9) |
 | Test Accuracy | 0.88 | 0.82 |
 | Test F1 Macro | 0.87 | 0.80 |
 | Low-risk F1 | 0.89 | 0.82 |

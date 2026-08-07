@@ -4,7 +4,7 @@ import os
 import torch
 from huggingface_hub import snapshot_download
 from safetensors.torch import load_file
-from transformers import AutoTokenizer
+from transformers import AutoModel, AutoTokenizer
 from typing import Dict
 
 from src.model import ContractRiskClassifier
@@ -28,6 +28,7 @@ class RiskPredictor:
     def __init__(
         self,
         model_path: str,
+        hf_repo_id: str = None,
         config_path: str = "configs/config.yaml",
         device: str = None,
     ):
@@ -46,39 +47,56 @@ class RiskPredictor:
         else:
             self.device = torch.device(device)
 
+        resolved_hf_repo_id = hf_repo_id or os.environ.get("HF_MODEL_REPO")
         model_source = model_path
-        if os.path.exists(model_path):
-            logger.info("Using local LegalBERT checkpoint at %s", model_path)
-        else:
-            hf_repo_id = os.getenv("HF_LEGALBERT_REPO_ID")
-            if not hf_repo_id:
-                raise FileNotFoundError(
-                    f"Local model path does not exist: {model_path}. "
-                    "Set HF_LEGALBERT_REPO_ID to a HuggingFace model repo "
-                    "(for example: your-username/contract-risk-legalbert) "
-                    "to enable remote checkpoint loading."
-                )
+        tokenizer_source = model_path
+        base_model_from_hf = None
 
-            logger.warning(
-                "Local model path %s not found. Falling back to HuggingFace Hub repo: %s",
-                model_path,
-                hf_repo_id,
-            )
+        if os.path.exists(model_path):
+            logger.info("RiskPredictor loading mode: local path (%s)", model_path)
+        elif resolved_hf_repo_id:
+            logger.info("RiskPredictor loading mode: HuggingFace Hub (%s)", resolved_hf_repo_id)
             model_source = snapshot_download(
-                repo_id=hf_repo_id,
+                repo_id=resolved_hf_repo_id,
                 allow_patterns=[
                     "model.safetensors",
+                    "config.json",
+                    "model_config.json",
                     "tokenizer.json",
                     "tokenizer_config.json",
                     "special_tokens_map.json",
                     "vocab.txt",
                 ],
             )
-            logger.info("Downloaded LegalBERT checkpoint snapshot to %s", model_source)
+            logger.info("Downloaded HF checkpoint snapshot to %s", model_source)
+            tokenizer_source = model_source
+            try:
+                base_model_from_hf = AutoModel.from_pretrained(
+                    resolved_hf_repo_id,
+                    use_safetensors=True,
+                )
+                logger.info("Loaded base model directly from HF repo id: %s", resolved_hf_repo_id)
+            except ValueError as exc:
+                logger.warning(
+                    "HF repo did not expose a standard AutoModel config (%s). "
+                    "Falling back to ContractRiskClassifier reconstruction + full safetensors load.",
+                    exc,
+                )
+            except OSError as exc:
+                logger.warning(
+                    "Direct AutoModel.from_pretrained on HF repo failed (%s). "
+                    "Falling back to ContractRiskClassifier reconstruction + full safetensors load.",
+                    exc,
+                )
+        else:
+            raise RuntimeError(
+                "Model not found locally and HF_MODEL_REPO not set. "
+                "Set the HF_MODEL_REPO environment variable to load from HuggingFace Hub."
+            )
 
         # Load tokenizer from the saved checkpoint directory
-        logger.info("Loading tokenizer from %s", model_source)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_source)
+        logger.info("Loading tokenizer from %s", tokenizer_source)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_source)
 
         # Reconstruct the EXACT architecture used during training
         # (ContractRiskClassifier: AutoModel base + Dropout + Linear on [CLS])
@@ -86,6 +104,8 @@ class RiskPredictor:
         logger.info("Reconstructing ContractRiskClassifier: %s, labels=%d, dropout=%s",
                      model_name, num_labels, dropout)
         self.model = ContractRiskClassifier(model_name, num_labels, dropout)
+        if base_model_from_hf is not None:
+            self.model.base_model = base_model_from_hf
 
         model_weights_path = os.path.join(model_source, "model.safetensors")
         state = load_file(model_weights_path, device=str(self.device))

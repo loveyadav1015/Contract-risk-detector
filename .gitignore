@@ -50,3 +50,7 @@ Thumbs.db
 # FAISS index
 *.faiss
 
+
+# Allow mini-transformer checkpoint
+!mini_transformer/best_model_v2/mini_transformer_best.pt
+!mini_transformer/best_model_v2/vocab.json

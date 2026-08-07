@@ -128,14 +128,45 @@ This project fine-tunes a pretrained legal language model on the Contract Unders
 
 ```
 contract-risk-detector/
-├── data/              # Raw and processed CUAD data
-├── notebooks/         # Jupyter notebooks for EDA
-├── src/               # Core ML code (dataset, model, train, evaluate, predict)
-├── api/               # FastAPI application (routes, services)
-├── rag/               # Optional RAG module (embedder, retriever, Q&A)
-├── models/            # Saved model checkpoints
-├── configs/           # YAML configuration
-└── tests/             # Unit and integration tests
+├── api/                   # FastAPI application
+│   ├── routes/            # API endpoints (analyze, analyze_mini, health)
+│   └── services/          # Core logic (PDF text extraction, prediction services)
+├── configs/               # Hyperparameter & YAML configurations
+│   └── config.yaml        
+├── data/                  # Dataset directory (.gitkeep tracked)
+│   ├── raw/               # Downloaded CUAD dataset cache
+│   └── processed/         # Processed clause records and PyTorch tensors
+├── mini_transformer/      # Custom from-scratch Transformer module & ablation study
+│   ├── attention.py       # Multi-Head Self-Attention implementation
+│   ├── dataset.py         # Custom dataset & tokenization wrapper
+│   ├── embeddings.py      # Token + Sinusoidal Positional Embeddings
+│   ├── encoder.py         # Transformer Encoder block stack
+│   ├── model.py           # Full MiniTransformerClassifier architecture
+│   ├── tokenizer.py       # Custom BPE tokenizer loader/builder
+│   ├── train_mini.py      # Manual PyTorch training & validation loop
+│   └── best_model/        # Checkpoints, vocabulary, and performance plots
+├── models/                # Saved fine-tuned model checkpoints (e.g., LegalBERT)
+├── notebooks/             # Jupyter notebooks for data exploration and EDA
+├── rag/                   # Contextual RAG module (embedder, retriever, Q&A)
+├── src/                   # Core LegalBERT pipeline
+│   ├── dataset.py         # CUAD parsing, tokenization, & DataLoaders
+│   ├── evaluate.py        # Model evaluation & metrics calculation
+│   ├── model.py           # LegalBERT sequence classification head setup
+│   ├── predict.py         # Standalone inference logic
+│   ├── train.py           # Training loop via HuggingFace Trainer
+│   ├── utils.py           # Text cleaning, chunking, & logging utilities
+│   └── visualize_training.py # Plotting training curves & confusion matrices
+├── tests/                 # Unit and integration test suite
+│   ├── test_api.py
+│   ├── test_dataset.py
+│   └── test_model.py
+├── .env.example           # Environment variables template
+├── .gitignore             # Ignores large datasets (*.json), model weights (*.pt), cache
+├── Dockerfile             # Container setup for production API deployment
+├── project.md             # Detailed project plan, metrics, & ablation study comparison
+├── README.md              # Primary project documentation and quickstart guide
+├── render.yaml            # Render deployment configuration blueprint
+└── requirements.txt       # Project dependencies
 ```
 
 ---

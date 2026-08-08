@@ -5,13 +5,19 @@ from typing import Dict
 
 import torch
 
-from api.services.predictor import LABEL_NAMES, RiskPredictor
 from mini_transformer.attention import create_padding_mask
 from mini_transformer.model import MiniTransformerClassifier
 from mini_transformer.tokenizer import Vocabulary
-from src.utils import clean_text, get_logger
+from src.utils import (
+    HIGH_RISK_CLAUSES,
+    MEDIUM_RISK_CLAUSES,
+    clean_text,
+    get_logger,
+)
 
 logger = get_logger(__name__)
+
+LABEL_NAMES = {0: "low", 1: "medium", 2: "high"}
 
 
 class MiniTransformerPredictor:
@@ -89,5 +95,24 @@ class MiniTransformerPredictor:
 
     @staticmethod
     def get_risk_reason(risk_label: int) -> str:
-        """Reuse LegalBERT service heuristic risk explanation text."""
-        return RiskPredictor.get_risk_reason(risk_label)
+        """Return a human-readable heuristic explanation for the risk level."""
+        if risk_label == 2:
+            examples = ", ".join(sorted(HIGH_RISK_CLAUSES)[:5])
+            return (
+                f"Classified as HIGH risk. Clauses in this category typically involve "
+                f"restrictive or liability-heavy provisions such as: {examples}. "
+                f"(Note: this is a heuristic category description, not a model-generated explanation.)"
+            )
+        elif risk_label == 1:
+            examples = ", ".join(sorted(MEDIUM_RISK_CLAUSES)[:5])
+            return (
+                f"Classified as MEDIUM risk. Clauses in this category typically involve "
+                f"operational or compliance provisions such as: {examples}. "
+                f"(Note: this is a heuristic category description, not a model-generated explanation.)"
+            )
+        else:
+            return (
+                "Classified as LOW risk. Clauses in this category typically involve "
+                "standard administrative or informational provisions. "
+                "(Note: this is a heuristic category description, not a model-generated explanation.)"
+            )

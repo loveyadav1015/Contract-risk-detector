@@ -1,6 +1,7 @@
 services:
   - type: web
-    name: contract-risk-detector
+    name: contract-risk-mini-transformer
     env: docker
+    dockerfilePath: ./Dockerfile.lite
     plan: free
     healthCheckPath: /health

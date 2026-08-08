@@ -48,6 +48,7 @@ class MiniTransformerPredictor:
         state_dict = torch.load(
             os.path.join(model_path, "mini_transformer_best.pt"),
             map_location=self.device,
+            weights_only=False,
         )
         self.model.load_state_dict(state_dict)
         self.model.to(self.device)
